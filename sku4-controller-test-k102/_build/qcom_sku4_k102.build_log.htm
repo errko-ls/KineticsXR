@@ -1,0 +1,80 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.37.0.0
+Copyright (C) 2022 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: zha zhao, zz, LIC=QF82M-XA59T-AR2XW-QMIZM-1SV4G-MEY7Y
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.37.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.37.0.0
+Dialog DLL:      DCM.DLL V1.17.5.0
+Target DLL:      Segger\JL2CM3.dll V2.99.42.0
+Dialog DLL:      TCM.DLL V1.56.1.0
+ 
+<h2>Project:</h2>
+D:\code\to-qcom-code\k102\joystick\project\K102\sc_k102.uvprojx
+Project File Date:  11/15/2022
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'qcom_sku4_k102'
+compiling s_rf.c...
+compiling imu_wrp.c...
+compiling ctlL.c...
+linking...
+Program Size: Code=56608 RO-data=1992 RW-data=5648 ZI-data=15632  
+FromELF: creating hex file...
+"..\..\..\_build\qcom_sku4_k102.axf" - 0 Error(s), 0 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.4.5.0.pack
+                ARM.CMSIS.4.5.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 4.3.0
+
+Package Vendor: NordicSemiconductor
+                http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/NordicSemiconductor.nRF_DeviceFamilyPack.8.24.1.pack
+                NordicSemiconductor.nRF_DeviceFamilyPack.8.24.1
+                Nordic Semiconductor nRF ARM devices Device Family Pack.
+   * Component: Startup Version: 8.24.1
+
+Package Vendor: NordicSemiconductor
+                http://developer.nordicsemi.com/nRF51_SDK/pieces/nRF_SoftDevice_Common/NordicSemiconductor.nRF_SoftDevice_Common.2.0.0-2.alpha.pack
+                NordicSemiconductor.nRF_SoftDevice_Common.2.0.0-2.alpha
+                Common components for Nordic Semiconductor nRF family SoftDevices.
+   * Component: sd_common Variant: Headers_only Version: 2.0.0-2.alpha
+   * Component: softdevice_present Version: 2.0.0-2.alpha
+
+<h2>Collection of Component include folders:</h2>
+  ./RTE/_qcom_sku4_k102
+  C:/Users/zhao.zha/AppData/Local/Arm/Packs/ARM/CMSIS/4.5.0/CMSIS/Include
+  C:/Users/zhao.zha/AppData/Local/Arm/Packs/NordicSemiconductor/nRF_DeviceFamilyPack/8.24.1/Device/Include
+  C:/Users/zhao.zha/AppData/Local/Arm/Packs/NordicSemiconductor/nRF_SoftDevice_Common/2.0.0-2.alpha/softdevice_handler
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:4.3.0
+
+   * Component: NordicSemiconductor::Device:Startup:8.24.1
+      Source file:   Device/Source/arm/arm_startup_nrf52.s
+      Include file:  Device/Include/system_nrf52.h
+      Source file:   Device/Source/system_nrf52.c
+
+   * Component: NordicSemiconductor::nRF_SoftDevice:Internal:sd_common:Headers_only:2.0.0-2.alpha
+
+   * Component: NordicSemiconductor::nRF_SoftDevice:Internal:softdevice_present:2.0.0-2.alpha
+Build Time Elapsed:  00:00:06
+</pre>
+</body>
+</html>
