@@ -1,0 +1,130 @@
+diff --git a/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h b/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
+index 3dc30804..fbfd7599 100644
+--- a/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
++++ b/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
+@@ -1773,7 +1773,7 @@
+ // <4=> Debug 
+ 
+ #ifndef NRF_LOG_DEFAULT_LEVEL
+-#define NRF_LOG_DEFAULT_LEVEL 4
++#define NRF_LOG_DEFAULT_LEVEL 2
+ #endif
+ 
+ // <q> NRF_LOG_DEFERRED  - Enable deffered logger.
+@@ -1782,7 +1782,7 @@
+ // <i> Log data is buffered and can be processed in idle.
+ 
+ #ifndef NRF_LOG_DEFERRED
+-#define NRF_LOG_DEFERRED 1
++#define NRF_LOG_DEFERRED 0
+ #endif
+ 
+ // <q> NRF_LOG_FILTERS_ENABLED  - Enable dynamic filtering of logs.
+diff --git a/examples/yc/sc/host.c b/examples/yc/sc/host.c
+index 944522b9..b8c854de 100644
+--- a/examples/yc/sc/host.c
++++ b/examples/yc/sc/host.c
+@@ -62,6 +62,8 @@ extern uint32_t  gledval;
+ 
+ static uint16_t glastidL = 0xffff;
+ static uint16_t glastidR = 0xffff;
++extern uint32_t auto_sleep_mode;
++extern uint32_t send_data_mode;
+ 
+ uint32_t get_req_tick(void);
+ uint32_t get_req_cnt(void);
+@@ -152,8 +154,17 @@ static void   protocal_req_cb(uint8_t *pdata, uint8_t size, uint32_t rts)
+     }
+ 
+     pdata[1] = dtrt;
+-	pdata[2] = (gvib&0x00ff);
+-	pdata[3] = ((gvib&0xff00)>>8);
++	if(auto_sleep_mode || send_data_mode || 1)
++	{
++		pdata[2] = auto_sleep_mode;
++		pdata[3] = send_data_mode;
++		auto_sleep_mode = 0;
++		send_data_mode  = 0;
++	}else{
++		//pdata[2] = (gvib&0x00ff);
++		//pdata[3] = ((gvib&0xff00)>>8);
++	}
++
+ 	gvib = 0; //the data is invalid after being set once
+ }
+ 
+diff --git a/examples/yc/sc/xcg.c b/examples/yc/sc/xcg.c
+index b29f3a54..9f4add35 100644
+--- a/examples/yc/sc/xcg.c
++++ b/examples/yc/sc/xcg.c
+@@ -26,6 +26,7 @@ v0.1. create        20191201     zk.xu
+ #include "rled_ctl.h"
+ #include "user_config.h"
+ 
++
+ #define SPI_M2
+ //#define  STORE_PIN  11
+ //#define  STOREIR_PIN  12
+@@ -76,6 +77,9 @@ unsigned char  bond_info;
+ static uint8_t gxcgbuffer[255];
+ static uint8_t gxcgbufferout[255];
+ static uint8_t ackHost = 0; //Notify the host by controlling the interrupt pin to get the reply
++volatile uint32_t auto_sleep_mode = 0;
++volatile uint32_t send_data_mode = 0;
++
+ 
+ void needAckHost(uint8_t enable)
+ {
+@@ -334,6 +338,7 @@ void sc_spiSlave_init(void)
+     APP_ERROR_CHECK(nrf_drv_spis_init(&spis, &spis_config, spis_bondEvent_handler));
+ }
+ 
++
+ static int sc_spi_transfer(void)
+ {
+ 	int ret;
+@@ -415,9 +420,11 @@ static int sc_spi_transfer(void)
+ 		NVIC_SystemReset();
+ 		NRF_LOG_WARNING("enterDfuMark:%d\n", enterDfuMark);
+ 	}
++	//NRF_LOG_ERROR("requestType:%d\n", current_request.requestHead.requestType);
+ 
+ 
+ 	memset(&current_request, 0, sizeof(request_t));
++	NRF_LOG_ERROR("mudan ======requestType:%d\n", current_request.requestHead.requestType);
+ 	if (rxBuffer[0] == CMD_REQUEST_TAG)
+ 	{
+ 		current_request.requestHead.needAck = ((rxBuffer[1]&0x80)>>7);
+@@ -426,7 +433,7 @@ static int sc_spi_transfer(void)
+ 		current_request.requestData[1] = rxBuffer[3];
+ 		current_request.requestData[2] = rxBuffer[4];
+ 
+-		NRF_LOG_WARNING("requestType:%d\n", current_request.requestHead.requestType);
++		NRF_LOG_ERROR("requestType:%d\n", current_request.requestHead.requestType);
+ 		switch(current_request.requestHead.requestType)
+ 		{
+ 			case getMasterNordicVersionRequest:
+@@ -487,6 +494,11 @@ static int sc_spi_transfer(void)
+ 				enterDfuMark = 1;
+ 				NRF_LOG_INFO("hostEnterDfuStateRequest\r\n");
+ 				break;
++			case setControllerSleepMode:
++				auto_sleep_mode = current_request.requestData[0];
++				send_data_mode  = current_request.requestData[1];
++				NRF_LOG_ERROR("mudan nordic audo_sleep_mode 0x%x send_data_mode 0x%x\r\n",auto_sleep_mode,send_data_mode);
++				break;
+ 		}
+ 		if (current_request.requestHead.needAck == 1)
+ 		{
+diff --git a/examples/yc/sc/xcg.h b/examples/yc/sc/xcg.h
+index 56d639c8..5a998c31 100644
+--- a/examples/yc/sc/xcg.h
++++ b/examples/yc/sc/xcg.h
+@@ -26,6 +26,7 @@ typedef enum _requestType_t
+ 	getLeftJoyStickFwVersionRequest,
+ 	getRightJoyStickFwVersionRequest,
+ 	invalidRequest,
++	setControllerSleepMode,
+ }requestType_t;
+ 
+ typedef struct _request_t

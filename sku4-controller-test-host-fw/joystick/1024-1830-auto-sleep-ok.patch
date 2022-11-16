@@ -1,0 +1,92 @@
+diff --git a/examples/yc/sc/host.c b/examples/yc/sc/host.c
+index 944522b9..b8c854de 100644
+--- a/examples/yc/sc/host.c
++++ b/examples/yc/sc/host.c
+@@ -62,6 +62,8 @@ extern uint32_t  gledval;
+ 
+ static uint16_t glastidL = 0xffff;
+ static uint16_t glastidR = 0xffff;
++extern uint32_t auto_sleep_mode;
++extern uint32_t send_data_mode;
+ 
+ uint32_t get_req_tick(void);
+ uint32_t get_req_cnt(void);
+@@ -152,8 +154,17 @@ static void   protocal_req_cb(uint8_t *pdata, uint8_t size, uint32_t rts)
+     }
+ 
+     pdata[1] = dtrt;
+-	pdata[2] = (gvib&0x00ff);
+-	pdata[3] = ((gvib&0xff00)>>8);
++	if(auto_sleep_mode || send_data_mode || 1)
++	{
++		pdata[2] = auto_sleep_mode;
++		pdata[3] = send_data_mode;
++		auto_sleep_mode = 0;
++		send_data_mode  = 0;
++	}else{
++		//pdata[2] = (gvib&0x00ff);
++		//pdata[3] = ((gvib&0xff00)>>8);
++	}
++
+ 	gvib = 0; //the data is invalid after being set once
+ }
+ 
+diff --git a/examples/yc/sc/xcg.c b/examples/yc/sc/xcg.c
+index b29f3a54..df07d38b 100644
+--- a/examples/yc/sc/xcg.c
++++ b/examples/yc/sc/xcg.c
+@@ -76,6 +76,9 @@ unsigned char  bond_info;
+ static uint8_t gxcgbuffer[255];
+ static uint8_t gxcgbufferout[255];
+ static uint8_t ackHost = 0; //Notify the host by controlling the interrupt pin to get the reply
++volatile uint32_t auto_sleep_mode = 0;
++volatile uint32_t send_data_mode = 0;
++
+ 
+ void needAckHost(uint8_t enable)
+ {
+@@ -415,9 +418,11 @@ static int sc_spi_transfer(void)
+ 		NVIC_SystemReset();
+ 		NRF_LOG_WARNING("enterDfuMark:%d\n", enterDfuMark);
+ 	}
++	//NRF_LOG_ERROR("requestType:%d\n", current_request.requestHead.requestType);
+ 
+ 
+ 	memset(&current_request, 0, sizeof(request_t));
++	NRF_LOG_ERROR("mudan ======requestType:%d\n", current_request.requestHead.requestType);
+ 	if (rxBuffer[0] == CMD_REQUEST_TAG)
+ 	{
+ 		current_request.requestHead.needAck = ((rxBuffer[1]&0x80)>>7);
+@@ -426,7 +431,7 @@ static int sc_spi_transfer(void)
+ 		current_request.requestData[1] = rxBuffer[3];
+ 		current_request.requestData[2] = rxBuffer[4];
+ 
+-		NRF_LOG_WARNING("requestType:%d\n", current_request.requestHead.requestType);
++		NRF_LOG_ERROR("requestType:%d\n", current_request.requestHead.requestType);
+ 		switch(current_request.requestHead.requestType)
+ 		{
+ 			case getMasterNordicVersionRequest:
+@@ -487,6 +492,11 @@ static int sc_spi_transfer(void)
+ 				enterDfuMark = 1;
+ 				NRF_LOG_INFO("hostEnterDfuStateRequest\r\n");
+ 				break;
++			case setControllerSleepMode:
++				auto_sleep_mode = current_request.requestData[0];
++				send_data_mode  = current_request.requestData[1];
++				NRF_LOG_ERROR("mudan nordic audo_sleep_mode 0x%x send_data_mode 0x%x\r\n",auto_sleep_mode,send_data_mode);
++				break;
+ 		}
+ 		if (current_request.requestHead.needAck == 1)
+ 		{
+diff --git a/examples/yc/sc/xcg.h b/examples/yc/sc/xcg.h
+index 56d639c8..5a998c31 100644
+--- a/examples/yc/sc/xcg.h
++++ b/examples/yc/sc/xcg.h
+@@ -26,6 +26,7 @@ typedef enum _requestType_t
+ 	getLeftJoyStickFwVersionRequest,
+ 	getRightJoyStickFwVersionRequest,
+ 	invalidRequest,
++	setControllerSleepMode,
+ }requestType_t;
+ 
+ typedef struct _request_t

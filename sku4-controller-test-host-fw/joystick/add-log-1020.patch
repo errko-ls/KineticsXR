@@ -1,0 +1,92 @@
+diff --git a/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h b/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
+index 3dc30804..fbfd7599 100644
+--- a/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
++++ b/examples/yc/sc/V02AH_fw/blank/config/sdk_config.h
+@@ -1773,7 +1773,7 @@
+ // <4=> Debug 
+ 
+ #ifndef NRF_LOG_DEFAULT_LEVEL
+-#define NRF_LOG_DEFAULT_LEVEL 4
++#define NRF_LOG_DEFAULT_LEVEL 2
+ #endif
+ 
+ // <q> NRF_LOG_DEFERRED  - Enable deffered logger.
+@@ -1782,7 +1782,7 @@
+ // <i> Log data is buffered and can be processed in idle.
+ 
+ #ifndef NRF_LOG_DEFERRED
+-#define NRF_LOG_DEFERRED 1
++#define NRF_LOG_DEFERRED 0
+ #endif
+ 
+ // <q> NRF_LOG_FILTERS_ENABLED  - Enable dynamic filtering of logs.
+diff --git a/examples/yc/sc/host.c b/examples/yc/sc/host.c
+index 944522b9..725cec1e 100644
+--- a/examples/yc/sc/host.c
++++ b/examples/yc/sc/host.c
+@@ -426,7 +426,7 @@ int main(void)
+     err_code = logging_init();
+     APP_ERROR_CHECK(err_code);
+ 
+-    NRF_LOG_WARNING("host init");
++    NRF_LOG_WARNING("rvk host init");
+     NRF_LOG_FLUSH();
+ 
+     if (!nrf_clock_lf_is_running())
+diff --git a/examples/yc/sc/xcg.c b/examples/yc/sc/xcg.c
+index b29f3a54..c29f2ba6 100644
+--- a/examples/yc/sc/xcg.c
++++ b/examples/yc/sc/xcg.c
+@@ -56,7 +56,7 @@ static uint32_t spi_transfer_time_tick = APP_TIMER_TICKS(300); //for spi transfe
+ 
+ static uint8_t enterDfuMark = 0;
+ 
+-#define FW_VERSION (0x0102)
++#define FW_VERSION (0x0103)
+ 
+ #define CMD_DATA  0xA6
+ #define CMD_CLR_BOND  0xA7
+@@ -418,6 +418,12 @@ static int sc_spi_transfer(void)
+ 
+ 
+ 	memset(&current_request, 0, sizeof(request_t));
++	for(int i=0 ; i < SEND_FIX_SIZE ; i++)
++	{
++	    NRF_LOG_ERROR("rvk rxBuffer[%d] = 0x%x     %d",i,rxBuffer[i],rxBuffer[i]);
++		
++	}
++	NRF_LOG_ERROR("rvk rxBuffer[0]:0x%x CMD_REQUEST_TAG:0x%x\n", rxBuffer[0],CMD_REQUEST_TAG);
+ 	if (rxBuffer[0] == CMD_REQUEST_TAG)
+ 	{
+ 		current_request.requestHead.needAck = ((rxBuffer[1]&0x80)>>7);
+@@ -426,25 +432,27 @@ static int sc_spi_transfer(void)
+ 		current_request.requestData[1] = rxBuffer[3];
+ 		current_request.requestData[2] = rxBuffer[4];
+ 
+-		NRF_LOG_WARNING("requestType:%d\n", current_request.requestHead.requestType);
++		NRF_LOG_ERROR("rvk requestType:%d\n", current_request.requestHead.requestType);
+ 		switch(current_request.requestHead.requestType)
+ 		{
+ 			case getMasterNordicVersionRequest:
+ 				requestAck.acknowledgeData[0] = (FW_VERSION&0xff);
+ 				requestAck.acknowledgeData[1] = ((FW_VERSION&0xff00) >> 8);
+-			NRF_LOG_WARNING("FW_VERSION:0x%x\n", FW_VERSION);
++			NRF_LOG_ERROR("rvk FW_VERSION:0x%x\n", FW_VERSION);
+ 				break;
+ 			case setVibStateRequest:
+ 				gvib = ((current_request.requestData[1] << 8) | current_request.requestData[0]);
+-				//NRF_LOG_WARNING("setVibStateRequest gvib:0x%x\n", gvib);
++				NRF_LOG_ERROR("rvk setVibStateRequest gvib:0x%x\n", gvib);
+ 				break;
+ 			case bondJoyStickRequest:	
+ 				joyStickID = (current_request.requestData[0]&0x01);
++				NRF_LOG_ERROR("rvk bondJoyStickRequest joyStickID:0x%x\n", joyStickID);
+ 				if ((!gInfo.left_ok) || (!gInfo.right_ok))
+ 					bondSpecifiedJoyStick(joyStickID);
+ 				break;
+ 			case disconnectJoyStickRequest:
+ 				joyStickID = (current_request.requestData[0]&0x01);
++				NRF_LOG_ERROR("rvk disconnectJoyStickRequest joyStickID:0x%x\n", joyStickID);
+ 				if (gInfo.left_ok || gInfo.right_ok)
+ 				{
+ 					ackHost = 0;
