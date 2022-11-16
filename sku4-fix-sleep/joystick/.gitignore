@@ -1,0 +1,5 @@
+examples/yc/sc/V02AH_fw/blank/arm5_no_packs/RTE/*
+examples/yc/sc/V02AH_fw/blank/arm5_no_packs/_build
+examples/yc/sc/V02AH_fw/blank/arm5_no_packs/esb_ptx_k02.uvguix.jiaxing.wang
+examples/yc/sc/V02AH_fw/blank/arm5_no_packs/esb_ptx_k02.uvoptx
+examples/yc/sc/V02AH_fw/blank/arm5_no_packs/JLinkLog.txt

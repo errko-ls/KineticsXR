@@ -1,0 +1,94 @@
+diff --git a/examples/yc/sc/m_rf.c b/examples/yc/sc/m_rf.c
+index 4364b6aa..d6e7e0a9 100644
+--- a/examples/yc/sc/m_rf.c
++++ b/examples/yc/sc/m_rf.c
+@@ -672,6 +672,11 @@ void rf_bond_event(nrf_esb_evt_t const *p_event)
+ 
+ }
+ 
++uint8_t current_Ldata = 0;
++uint8_t current_Rdata = 0;
++uint8_t last_Ldata = 0;
++uint8_t last_Rdata = 0;
++uint8_t status = 1;
+ 
+ void rf_data_event(nrf_esb_evt_t const *p_event)
+ {
+@@ -712,6 +717,7 @@ void rf_data_event(nrf_esb_evt_t const *p_event)
+                 	if (gDataCallback)
+ 						gDataCallback(&gRxPayload.data[1], gRxPayload.length - 1, 0);
+                   	gDataRecvCntL++;
++									current_Ldata = gRxPayload.data[2];
+             	}
+ 
+ 
+@@ -725,6 +731,7 @@ void rf_data_event(nrf_esb_evt_t const *p_event)
+                 	if (gDataCallback)
+ 						gDataCallback(&gRxPayload.data[1], gRxPayload.length - 1, 1);
+                 	gDataRecvCntR++;
++									current_Rdata = gRxPayload.data[2];
+               }
+             }
+             else
+diff --git a/examples/yc/sc/xcg.c b/examples/yc/sc/xcg.c
+index b29f3a54..969377e2 100644
+--- a/examples/yc/sc/xcg.c
++++ b/examples/yc/sc/xcg.c
+@@ -333,7 +333,13 @@ void sc_spiSlave_init(void)
+ 
+     APP_ERROR_CHECK(nrf_drv_spis_init(&spis, &spis_config, spis_bondEvent_handler));
+ }
+-
++int count;
++extern uint8_t status;
++extern uint8_t current_Ldata;
++extern uint8_t current_Rdata;
++extern uint8_t last_Ldata;
++extern uint8_t last_Rdata;
++extern uint8_t status;
+ static int sc_spi_transfer(void)
+ {
+ 	int ret;
+@@ -357,8 +363,15 @@ static int sc_spi_transfer(void)
+ 	{
+ 		ackHost = 0;
+ 	}
+-
+-	if(gInfo.left_ok || gInfo.right_ok)
++	
++	if((last_Ldata != current_Ldata)||(last_Rdata != current_Rdata))
++		status = 1;
++	else
++		status = 0;
++	last_Ldata = current_Ldata;
++	last_Rdata = current_Rdata;	
++	
++	if((gInfo.left_ok || gInfo.right_ok))
+ 	{
+ 		int size;
+ 	    int cnt = 0;
+@@ -403,11 +416,19 @@ static int sc_spi_transfer(void)
+ 	}
+ 	spis_transfer_done = false;
+ 	memcpy(txBuffer, PackagingInputBuffer, sizeof(PackagingInputBuffer));
+-	ret = nrf_drv_spis_buffers_set(&spis, txBuffer, SEND_FIX_SIZE, rxBuffer, SEND_FIX_SIZE);
+-    while (!spis_transfer_done)
+-    {
+-        __WFE();
+-    }
++	if((status == 1)||((gInfo.left_ok == 0)||(gInfo.right_ok == 0)))
++	{
++		ret = nrf_drv_spis_buffers_set(&spis, txBuffer, SEND_FIX_SIZE, rxBuffer, SEND_FIX_SIZE);
++
++		while (!spis_transfer_done)
++		{
++
++			if((rxBuffer[1]&0x7f) != 0)
++			{
++				__WFE();
++			}
++		}
++	}
+ 
+ 	if(enterDfuMark == 1) {
+ 		NRF_POWER->GPREGRET = 0xB1;
