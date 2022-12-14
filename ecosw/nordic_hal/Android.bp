@@ -1,0 +1,12 @@
+subdirs = [
+    "nordiccommand",
+    "1.0",
+    "vintf",
+    "test",
+    "hal_nordic_bridge",
+]
+
+hidl_package_root {
+    name: "vendor.kineticsxr.hardware.nordic",
+    path: "vendor/qcom/opensource/ecosw/nordic_hal",
+}

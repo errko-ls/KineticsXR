@@ -1,0 +1,50 @@
+cc_library_shared {
+    name: "lib_hal_nordic_jni",
+    srcs: ["app/src/main/cpp/HalServiceNative.cpp"],
+    proprietary: true,
+    header_libs: [
+        "jni_headers",
+    ],
+    shared_libs: [
+        "liblog",
+        "libbase",
+        "libdl",
+        "libutils",
+        "libhardware",
+        "libhidlbase",
+        "libhidltransport",
+        "vendor.kineticsxr.hardware.nordic@1.0",
+        "libcutils",
+    ],
+}
+
+android_app {
+    name: "ControllerBridge",
+    certificate: "platform",
+    proprietary: true,
+    srcs: [
+        "app/src/main/java/**/*.java",
+        "app/src/main/aidl/**/*.aidl"
+    ],
+
+    resource_dirs: ["app/src/main/res"],
+    manifest: "app/src/main/AndroidManifest.xml",
+
+    jni_libs: ["lib_hal_nordic_jni"],
+    static_libs: [
+        "androidx-constraintlayout_constraintlayout",
+        "androidx-constraintlayout_constraintlayout-solver",
+    ],
+    optimize: {
+        obfuscate: false,
+        enabled: false,
+    },
+    sdk_version: "current",
+    dex_preopt: {
+        enabled: false,
+    },
+	aidl: {
+		
+		local_include_dirs: ["app/src/main/aidl/"],
+	}
+}

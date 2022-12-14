@@ -1,0 +1,1 @@
+c1e76d2ab97c72f66107e38363804377a4f2414e9733236ca63ccb373a084d80 vendor.kineticsxr.hardware.nordic@1.0::INordic
